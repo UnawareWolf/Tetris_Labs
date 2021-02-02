@@ -31,14 +31,11 @@ procedure Main is
       Piece : Falling_Piece;
    end record;
 
-   Piece_1 : Falling_Piece;
-
    type Row_Array is array (X_Coord) of Cell_Content;
 
    type Board_Array is array (Y_Coord) of Row_Array;
 
    The_Board : Board_Array;
-   Board_Copy : Board_Array;
 
    function Translate_X (X_Left : in X_Coord) return Float is
    begin
@@ -50,49 +47,93 @@ procedure Main is
       return Float (Coord_Offset) - Box_Size * Float (Y_Bottom);
    end Translate_Y;
 
-begin
+   function New_Piece (Content_Type : Piece_Type) return Falling_Piece is
+      Piece : Falling_Piece;
+      Default_X : X_Coord := 3;
+      Default_Y : Y_Coord := 0;
+   begin
+      Piece := (Content_Type => Content_Type,
+                Shape => New_Box (X      => Translate_X (Default_X),
+                                  Y      => Translate_Y (Default_Y),
+                                  Width  => Box_Size,
+                                  Height => Box_Size,
+                                  Color  => Red),
+                others => <>);
+      return Piece;
+   end New_Piece;
 
-   Piece_1.Content_Type := Z;
-   Piece_1.Shape := New_Box (X      => Translate_X (Piece_1.X_Pos),
-                             Y      => Translate_Y (Piece_1.Y_Pos),
-                             Width  => Box_Size,
-                             Height => Box_Size,
-                             Color  => Red);
-   The_Board (Piece_1.Y_Pos)(Piece_1.X_Pos) := (Content_Type => Piece_1.Content_Type,
-                                                Piece => Piece_1);
+   procedure Include_Piece_In_Board (Board : in out Board_Array;
+                                     Piece : in Falling_Piece)
+   is
+   begin
+      Board (Piece.Y_Pos)(Piece.X_Pos) := (Content_Type => Piece.Content_Type,
+                                           Piece => Piece);
+   end Include_Piece_In_Board;
 
-   while Piece_1.Y_Pos < Y_Coord'Last loop
-      delay 0.1;
-      Board_Copy := The_Board;
+   procedure Remove_Piece_From_Board (Board : in out Board_Array;
+                                      Piece : in Falling_Piece)
+   is
+   begin
+      Board (Piece.Y_Pos)(Piece.X_Pos) := (Content_Type => Empty,
+                                           Piece => <>);
+   end Remove_Piece_From_Board;
 
+   procedure Update_Board (Board : in out Board_Array) is
+      Board_Copy : Board_Array := Board;
+   begin
       for Row of Board_Copy loop
          for Cell of Row loop
-            if Cell.Content_Type /= Empty and then Cell.Piece.Y_Pos < Y_Coord'Last then
+            if Cell.Content_Type /= Empty and then
+              Cell.Piece.Y_Pos < Y_Coord'Last then
+               Remove_Piece_From_Board (The_Board, Cell.Piece);
                Cell.Piece.Y_Pos := Cell.Piece.Y_Pos + 1;
-               Set_Y (Shape => Cell.Piece.Shape,
-                      Value => Translate_Y (Cell.Piece.Y_Pos));
-               The_Board (Cell.Piece.Y_Pos)(Cell.Piece.X_Pos) := (Piece => Cell.Piece,
-                                                                  Content_Type => Cell.Piece.Content_Type);
+               Include_Piece_In_Board (The_Board, Cell.Piece);
             end if;
          end loop;
       end loop;
+   end Update_Board;
+
+   procedure Update_Graphics (Board : in out Board_Array) is
+   begin
+      for Row of Board loop
+         for Cell of Row loop
+            if Cell.Content_Type /= Empty then
+               Set_Y (Shape => Cell.Piece.Shape,
+                      Value => Translate_Y (Cell.Piece.Y_Pos));
+            end if;
+         end loop;
+      end loop;
+   end Update_Graphics;
+
+   procedure Print_Board (Board : in Board_Array) is
+   begin
+      for Row of Board loop
+         for Cell of Row loop
+            if Cell.Content_Type = Empty then
+               Put ("-");
+            else
+               Put (Cell.Content_Type'Image);
+            end if;
+            Put (" ");
+         end loop;
+         New_Line;
+      end loop;
+      New_Line;
+   end Print_Board;
+
+begin
+   Include_Piece_In_Board (The_Board, New_Piece (Z));
+
+   for I in 0 .. 30 loop
+      delay 0.1;
+      Update_Board (The_Board);
+      Update_Graphics (The_Board);
    end loop;
 
    New_Line;
    Put_Line ("   GAME OVER");
-
-   for Row of The_Board loop
-      for Cell of Row loop
-         if Cell.Content_Type = Empty then
-            Put ("-");
-         else
-            Put (Cell.Content_Type'Image);
-         end if;
-         Put (" ");
-      end loop;
-      New_Line;
-   end loop;
-   New_Line;
+   Print_Board (The_Board);
    Put_Line ("Block has finished falling!");
+   New_Line;
 
 end Main;
