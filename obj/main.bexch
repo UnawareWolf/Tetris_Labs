@@ -1,0 +1,28 @@
+[GENERATED OBJECT FILE]
+b__main.o
+[PROJECT FILES]
+C:\Users\hal\Documents\SPARK_course\spark2014_fundamentals\spark2014_fundamentals\Tetris_Labs\Handouts\labs-Tetris-01_Basic_Types\tetris.gpr
+20200723155822 8fadfce6e6ca1311a6db034e359ac7cf
+C:\gnat\2020\share\gpr\gnat_sdl.gpr
+20210201164004 7081a30b67c6a5983de581085bcf2266
+C:\gnat\2020\share\gpr\game_support.gpr
+20210201164010 38d3fa45877cfa7b009606accf9c7b29
+[BOUND OBJECT FILES]
+C:\Users\hal\Documents\SPARK_course\spark2014_fundamentals\spark2014_fundamentals\Tetris_Labs\Handouts\labs-Tetris-01_Basic_Types\obj\main.o
+[GENERATED SOURCE FILES]
+b__main.ads
+b__main.adb
+b__main.ali
+[RESULTING OPTIONS]
+-LC:\Users\hal\Documents\SPARK_course\spark2014_fundamentals\spark2014_fundamentals\Tetris_Labs\Handouts\labs-Tetris-01_Basic_Types\obj\
+-LC:\Users\hal\Documents\SPARK_course\spark2014_fundamentals\spark2014_fundamentals\Tetris_Labs\Handouts\labs-Tetris-01_Basic_Types\obj\
+-LC:\gnat\2020\lib\game_support\
+-LC:\gnat\2020\lib\gnat_sdl\
+-LC:/gnat/2020/lib/gcc/x86_64-pc-mingw32/9.3.1/adalib/
+-static
+-static-libgcc
+C:/gnat/2020/lib/gcc/x86_64-pc-mingw32/9.3.1/adalib/libgnarl.a
+C:/gnat/2020/lib/gcc/x86_64-pc-mingw32/9.3.1/adalib/libgnat.a
+-Xlinker
+--stack=0x200000,0x1000
+-mthreads
