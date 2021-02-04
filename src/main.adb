@@ -1,6 +1,8 @@
 with Display;       use Display;
 with Display.Basic; use Display.Basic;
 with Ada.Text_IO; use Ada.Text_IO;
+with Picture; use Picture;
+with Tetris; use Tetris;
 with Ada.Numerics.Discrete_Random;
 --  with Ada.Numerics.Float_Random;
 
@@ -8,21 +10,21 @@ procedure Main is
 
    Coord_Offset : constant Integer := 100;
 
-   type X_Coord is range 0 .. 15;
-   type Y_Coord is range 0 .. 15;
+   type X_Coord is range 0 .. 39;
+   type Y_Coord is range 0 .. 39;
 
    Box_Size : constant Float := Float (Coord_Offset * 2) / Float (Y_Coord'Last);
 
    X_Pos : X_Coord := 4;
    Y_Pos : Y_Coord := 0;
 
-   type Cell_Type is (Empty, I, O, J, L, S, T, Z);
-
-   subtype Piece_Type is Cell_Type range I .. Z;
-
    type Piece_Colour_Type is array (Piece_Type) of Color_Type;
-   Piece_Colour_Map : constant Piece_Colour_Type := (Blue, Green, Cyan, Red,
-                                                     Magenta, Yellow, White);
+   --  use with pic 3
+   --  Piece_Colour_Map : constant Piece_Colour_Type := (Red, Green, Black, Cyan,
+   --                                                    Yellow, Magenta, White);
+
+   Piece_Colour_Map : constant Piece_Colour_Type := (Yellow, Red, Cyan, White,
+                                                     Blue, Black, Green);
 
    package Random_Piece is new Ada.Numerics.Discrete_Random (Piece_Type); use Random_Piece;
    package Random_X is new Ada.Numerics.Discrete_Random (X_Coord); use Random_X;
@@ -41,6 +43,7 @@ procedure Main is
    type Cell_Content is record
       Content_Type : Cell_Type := Empty;
       Piece : Falling_Piece;
+      Locked : Boolean := False;
    end record;
 
    type Row_Array is array (X_Coord) of Cell_Content;
@@ -59,14 +62,26 @@ procedure Main is
       return Float (Coord_Offset) - Box_Size * Float (Y_Bottom);
    end Translate_Y;
 
-   function New_Piece return Falling_Piece is
+   function New_Piece (Board : in out Board_Array; Picture_Map : Picture_Codes) return Falling_Piece is
       Piece : Falling_Piece;
       Content_Type : Piece_Type := Random (Piece_Generator);
       X_Pos : X_Coord := Random (X_Generator);
       --  Rand_Float : Float := Ada.Numerics.Float_Random.Random (Float_Generator);
       Default_Y : Y_Coord := 0;
       --  Open_Cols : Positive := 0;
+
+      Y_Open : Y_Coord := Y_Coord'Last;
    begin
+      for Row of reverse Board loop
+         exit when not Row (X_Pos).Locked;
+         if Y_Open > Y_Coord'First then
+            Y_Open := Y_Open - 1;
+         end if;
+      end loop;
+
+      Content_Type := Picture_Map (Integer (X_Pos))(Integer (Y_Open));
+
+      Board (Y_Open)(X_Pos).Locked := True;
 
       Piece := (Content_Type => Content_Type,
                 Shape => New_Box (X      => Translate_X (X_Pos),
@@ -84,7 +99,8 @@ procedure Main is
    is
    begin
       Board (Piece.Y_Pos)(Piece.X_Pos) := (Content_Type => Piece.Content_Type,
-                                           Piece => Piece);
+                                           Piece => Piece,
+                                           Locked => True);
    end Include_Piece_In_Board;
 
    procedure Remove_Piece_From_Board (Board : in out Board_Array;
@@ -92,7 +108,8 @@ procedure Main is
    is
    begin
       Board (Piece.Y_Pos)(Piece.X_Pos) := (Content_Type => Empty,
-                                           Piece => <>);
+                                           Piece => <>,
+                                           Locked => False);
    end Remove_Piece_From_Board;
 
    procedure Update_Board (Board : in out Board_Array) is
@@ -146,12 +163,15 @@ procedure Main is
       New_Line;
    end Print_Board;
 
-begin
-   Include_Piece_In_Board (The_Board, New_Piece);
+   Picture_Map : Picture_Codes;
 
-   for I in 0 .. 400 loop
-      delay 0.005;
-      Include_Piece_In_Board (The_Board, New_Piece);
+begin
+   Picture_Map := Get_Picture_Codes;
+   Include_Piece_In_Board (The_Board, New_Piece (The_Board, Picture_Map));
+   --  delay 10.0;
+   for I in 006 .. 4094 loop
+      delay 0.006;
+      Include_Piece_In_Board (The_Board, New_Piece (The_Board, Picture_Map));
       Update_Board (The_Board);
       Update_Graphics (The_Board);
    end loop;
