@@ -1,7 +1,9 @@
 with Display; use Display;
 with Tetris; use Tetris;
 
-package Picture is
+package Picture
+with SPARK_Mode => On
+is
 
    type Code_Row is array (0 .. 39) of Piece_Type;
    type Picture_Codes is array (0 .. 39) of Code_Row;
