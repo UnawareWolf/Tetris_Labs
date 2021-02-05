@@ -1,12 +1,13 @@
 with Display; use Display;
-with Tetris; use Tetris;
+with Common; use Common;
+
 
 package Picture
 with SPARK_Mode => On
 is
 
-   type Code_Row is array (0 .. 39) of Piece_Type;
-   type Picture_Codes is array (0 .. 39) of Code_Row;
+   type Code_Row is array (Y_Coord) of Piece_Type;
+   type Picture_Codes is array (X_Coord) of Code_Row;
 
    function Get_Picture_Codes return Picture_Codes;
 

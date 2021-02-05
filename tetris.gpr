@@ -1,6 +1,8 @@
 with "game_support.gpr";
 
 project Tetris is
+	
+	for Languages use ("ada", "c");
    
    for Main use ("main");
    for Object_Dir use "obj";
