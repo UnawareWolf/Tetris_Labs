@@ -12,7 +12,7 @@ is
           Import => True,
           Convention => C;
    begin
-      run_shell ("python scan_image.py " & Image_Width'Image);
+      run_shell ("python src/scan_image.py " & Image_Width'Image);
    end Py_Scan_Image;
 
    function Get_Picture_Codes return Picture_Codes is
@@ -25,7 +25,7 @@ is
       Single_String_2 : String (1 .. 1);
    begin
       Py_Scan_Image;
-      Open (F, In_File, "picture_codes.txt");
+      Open (F, In_File, "res/picture_codes.txt");
       while not End_Of_File (F) loop
          Code_Line := Get_Line (F);
          X := 0;

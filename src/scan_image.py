@@ -16,7 +16,7 @@ COLOURS = {
 
 
 def run():
-    write_blocks_to_file(load_image('surprised_pikachu.png'))
+    write_blocks_to_file(load_image('res/brothers_photo.jpg'))
 
 
 def load_image(path):
@@ -153,7 +153,7 @@ def arrange_colours(colours):
 
 
 def write_blocks_to_file(output_pixels):
-    with open('picture_codes.txt', 'w') as output_file:
+    with open('res/picture_codes.txt', 'w') as output_file:
         for row in output_pixels:
             line = ''
             for cell in row:
