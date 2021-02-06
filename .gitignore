@@ -1,6 +1,5 @@
 *.o
 *.ali
-*.adb
 *.exe
 *.als
 obj/

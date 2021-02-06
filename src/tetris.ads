@@ -11,6 +11,9 @@ is
 
    Piece_Colour_Map : constant Piece_Colour_Type := (Yellow, Red, Cyan, White,
                                                      Blue, Black, Green);
+   --  for fun
+   --  Piece_Colour_Typece_Colour_Map : constant Piece_Colour_Type := (Yellow, Blue, Cyan, White,
+   --                                                    Magenta, Red, Green);
 
    type Coord_2D is record
       X_Pos : X_Coord := X_Coord'First;

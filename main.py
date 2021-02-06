@@ -3,7 +3,10 @@ import colorsys
 import sys
 
 OUTPUT_DIMS = int(sys.argv[1])
-OUTPUT_CODES = ["I", "O", "J", "L", "S", "T", "Z"]
+OUTPUT_CODES = ["I", "O", "J", "L", "S", "T", "Z", "I", "O", "J", "L", "S", "T", "Z", "I", "O", "J", "L", "S", "T", "Z"]
+
+# Tripachu:
+# OUTPUT_CODES = ["I", "O", "J", "L", "S", "T", "Z", "T", "I", "O", "J", "L", "S", "T", "Z", "T"]
 
 
 def run():
@@ -28,7 +31,10 @@ def load_image(path):
 
     short_colour_spread = get_short_colour_spread(all_colours, len(OUTPUT_CODES))
     add_code_map_to_colour_spread(short_colour_spread)
-    pixel_step = int(x / OUTPUT_DIMS)
+    if x <= y:
+        pixel_step = int(x / OUTPUT_DIMS)
+    else:
+        pixel_step = int(y / OUTPUT_DIMS)
 
     output_image = Image.new('RGB', (OUTPUT_DIMS, OUTPUT_DIMS), 'white')
     output_to_mod = output_image.load()
