@@ -9,11 +9,26 @@ is
 
    type Piece_Colour_Type is array (Piece_Type) of Color_Type;
 
-   Piece_Colour_Map : constant Piece_Colour_Type := (Yellow, Red, Cyan, White,
-                                                     Blue, Black, Green);
-   --  for fun
-   --  Piece_Colour_Typece_Colour_Map : constant Piece_Colour_Type := (Yellow, Blue, Cyan, White,
-   --                                                    Magenta, Red, Green);
+
+   Piece_Colour_Map : constant Piece_Colour_Type := (Magenta, Red, Yellow,
+                                                     Green, Cyan, Blue,
+                                                     Black, White);
+
+   -- pikachu manual
+   --  Piece_Colour_Map : constant Piece_Colour_Type := (Cyan, Yellow, Magenta, Black,
+   --                                                    Red, Blue, White, Green);
+   --  --  for fun
+   --  Piece_Colour_Map : constant Piece_Colour_Type := (Yellow, Blue, Cyan, White,
+   --                                                    Magenta, Black, Green);
+
+
+      -- for dylan
+   --  Piece_Colour_Map : constant Piece_Colour_Type := (Cyan, Magenta, White, Yellow,
+   --                                                    Black, Blue, Green, Red);
+
+   -- for brothers
+   --  Piece_Colour_Map : constant Piece_Colour_Type := (Magenta, Red, Yellow, Cyan,
+   --                                                    Black, White, Green);
 
    type Coord_2D is record
       X_Pos : X_Coord := X_Coord'First;

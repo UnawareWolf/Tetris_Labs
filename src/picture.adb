@@ -6,14 +6,14 @@ package body Picture
 --  with SPARK_Mode => On
 is
 
-   procedure Show_C_Func is
-      procedure my_func (a : String)
+   procedure Py_Scan_Image is
+      procedure run_shell (a : String)
         with
           Import => True,
           Convention => C;
    begin
-      my_func ("python main.py " & Image_Width'Image);
-   end Show_C_Func;
+      run_shell ("python scan_image.py " & Image_Width'Image);
+   end Py_Scan_Image;
 
    function Get_Picture_Codes return Picture_Codes is
       F : File_Type;
@@ -24,7 +24,7 @@ is
       Single_String : String (1 .. 1);
       Single_String_2 : String (1 .. 1);
    begin
-      Show_C_Func;
+      Py_Scan_Image;
       Open (F, In_File, "picture_codes.txt");
       while not End_Of_File (F) loop
          Code_Line := Get_Line (F);

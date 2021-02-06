@@ -3,10 +3,16 @@ import colorsys
 import sys
 
 OUTPUT_DIMS = int(sys.argv[1])
-OUTPUT_CODES = ["I", "O", "J", "L", "S", "T", "Z", "I", "O", "J", "L", "S", "T", "Z", "I", "O", "J", "L", "S", "T", "Z"]
-
-# Tripachu:
-# OUTPUT_CODES = ["I", "O", "J", "L", "S", "T", "Z", "T", "I", "O", "J", "L", "S", "T", "Z", "T"]
+COLOURS = {
+    0: {'code': 'I', 'r': 198, 'g': 0, 'b': 198},  # Magenta
+    1: {'code': 'O', 'r': 198, 'g': 0, 'b': 0},  # Red
+    2: {'code': 'J', 'r': 198, 'g': 198, 'b': 0},  # Yellow
+    3: {'code': 'L', 'r': 0, 'g': 198, 'b': 0},  # Green
+    4: {'code': 'S', 'r': 0, 'g': 198, 'b': 198},  # Cyan
+    5: {'code': 'T', 'r': 0, 'g': 0, 'b': 198},  # Blue
+    6: {'code': 'Z', 'r': 0, 'g': 0, 'b': 0},  # Black
+    7: {'code': 'W', 'r': 198, 'g': 198, 'b': 198}  # White
+}
 
 
 def run():
@@ -29,7 +35,7 @@ def load_image(path):
             })
     arrange_colours(all_colours)
 
-    short_colour_spread = get_short_colour_spread(all_colours, len(OUTPUT_CODES))
+    short_colour_spread = get_short_colour_spread(all_colours, len(COLOURS))
     add_code_map_to_colour_spread(short_colour_spread)
     if x <= y:
         pixel_step = int(x / OUTPUT_DIMS)
@@ -64,11 +70,23 @@ def calc_colour_distance(spread_hsv, pixel_hsv):
     return (2 * dh ** 2 + ds ** 2 + dv ** 2) ** 0.5
 
 
+def get_colour_id(colour_spread, pixel):
+    hsv = get_hsv(pixel)
+    return_id = 0
+    hue_min_distance = calc_colour_distance(get_hsv(colour_spread[0]), hsv)
+    for colour_id, colour_dict in colour_spread.items():
+        hue_distance = calc_colour_distance(get_hsv(colour_dict), hsv)
+        if hue_distance < hue_min_distance:
+            hue_min_distance = hue_distance
+            return_id = colour_id
+    return return_id
+
+
 def get_colour_code(colour_spread, pixel):
     hsv = get_hsv_from_tuple(pixel)
     code = colour_spread[0]['code']
     hue_min_distance = calc_colour_distance(get_hsv(colour_spread[0]), hsv)
-    for colour_dict in colour_spread:
+    for colour_dict in colour_spread.values():
         hue_distance = calc_colour_distance(get_hsv(colour_dict), hsv)
         if hue_distance < hue_min_distance:
             hue_min_distance = hue_distance
@@ -77,28 +95,41 @@ def get_colour_code(colour_spread, pixel):
 
 
 def get_rgb_from_code(colour_spread, code):
-    for colour_dict in colour_spread:
+    for colour_dict in colour_spread.values():
         if colour_dict['code'] == code:
-            return (colour_dict['r'], colour_dict['g'], colour_dict['b'])
-    return (0, 0, 0)
+            return colour_dict['r'], colour_dict['g'], colour_dict['b']
+    return 0, 0, 0
 
 
 def add_code_map_to_colour_spread(colour_spread):
-    count = 0
-    for colour_dict in colour_spread:
-        colour_dict['code'] = OUTPUT_CODES[count]
-        count += 1
+    colour_preference_list = []
+    for colour_id, colour_dict in colour_spread.items():
+        for colour_code in COLOURS.values():
+            dist = calc_colour_distance(get_hsv(colour_code), get_hsv(colour_dict))  # * 1 / colour_dict['count']
+            colour_preference_list.append({'id': colour_id, 'code': colour_code['code'], 'dist': dist})
+
+    colour_preference_list.sort(key=lambda pref: pref['dist'])
+
+    for _ in range(len(COLOURS)):
+        colour_choice = colour_preference_list[0]
+        colour_spread[colour_choice['id']]['code'] = colour_choice['code']
+        colour_preference_list = [item for item in colour_preference_list if item['id'] is not colour_choice['id']
+                                  and item['code'] is not colour_choice['code']]
 
 
 def get_short_colour_spread(colours, colours_out_count):
     arrange_colours(colours)
     total_pixels = len(colours)
     spread_separation = int(total_pixels / colours_out_count)
-    short_colour_spread = []
+    # short_colour_spread = []
+    short_colour_spread = {}
     for i in range(colours_out_count):
         sample_point = (i * spread_separation) + int(spread_separation / 2)
-        short_colour_spread.append(colours[sample_point])
+        short_colour_spread[i] = colours[sample_point]
+        short_colour_spread[i]['count'] = 0
 
+    for pixel in colours:
+        short_colour_spread[get_colour_id(short_colour_spread, pixel)]['count'] += 1
     return short_colour_spread
 
 
