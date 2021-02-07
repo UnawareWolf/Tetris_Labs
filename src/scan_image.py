@@ -1,10 +1,12 @@
 from PIL import Image
 import colorsys
 import sys
+import random
 
 DISPLAY = False
 IMAGE_PATH = 'res/surprised_pikachu.png'
 OUTPUT_DIMS = int(sys.argv[1])
+ABSTRACTION = 1  # 1 is normal. Please leave at 1.
 COLOURS = {
     'I': (0.833, 1.0, 0.776),  # Magenta
     'O': (0.0, 1.0, 0.776),  # Red
@@ -94,11 +96,11 @@ def update_spread_count(colour_spread, output_pixels):
 
 
 def calc_colour_distance(spread_hsv, pixel_hsv):
-    dh = min(abs(pixel_hsv[0] - spread_hsv[0]), 1 - abs(pixel_hsv[0] - spread_hsv[0]) / 0.5)
+    dh = abs(min(abs(pixel_hsv[0] - spread_hsv[0]), 1 - abs(pixel_hsv[0] - spread_hsv[0]) / 0.5))
     ds = abs(pixel_hsv[1] - spread_hsv[1])
     dv = abs(pixel_hsv[2] - spread_hsv[2])
 
-    return (2 * dh ** 2 + ds ** 2 + dv ** 2) ** 0.5
+    return (dh ** 2 + ds ** 2 + dv ** 2) ** 0.5
 
 
 def get_closest_colour_id(colour_spread, pixel_hsv):
@@ -127,13 +129,18 @@ def add_code_map_to_colour_spread(colour_spread):
         colour_preference_list = [item for item in colour_preference_list if item['id'] is not colour_choice['id']
                                   and item['code'] is not colour_choice['code']]
 
+    # Leftover items get assigned randomly creating pattern effect
+    for spread_id, spread_dict in colour_spread.items():
+        if len(spread_dict['code']) == 0:
+            spread_dict['code'] = random.choice(list(COLOURS.keys()))
+
 
 def get_short_colour_spread(colours):
-    spread_separation = int(len(colours) / len(COLOURS))
+    spread_separation = int(len(colours) / (len(COLOURS) * ABSTRACTION))
     short_colour_spread = {}
-    for i in range(len(COLOURS)):
+    for i in range(len(COLOURS) * ABSTRACTION):
         sample_point = (i * spread_separation) + int(spread_separation / 2)
-        short_colour_spread[i] = {'hsv': colours[sample_point], 'count': 0}
+        short_colour_spread[i] = {'hsv': colours[sample_point], 'count': 0, 'code': ''}
     return short_colour_spread
 
 
