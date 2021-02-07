@@ -3,7 +3,7 @@ import colorsys
 import sys
 
 DISPLAY = False
-IMAGE_PATH = 'res/rich_ski.jpeg'
+IMAGE_PATH = 'res/surprised_pikachu.png'
 OUTPUT_DIMS = int(sys.argv[1])
 COLOURS = {
     'I': (0.833, 1.0, 0.776),  # Magenta
