@@ -2,48 +2,68 @@ from PIL import Image
 import colorsys
 import sys
 
+DISPLAY = False
+IMAGE_PATH = 'res/rich_ski.jpeg'
 OUTPUT_DIMS = int(sys.argv[1])
 COLOURS = {
-    0: {'code': 'I', 'r': 198, 'g': 0, 'b': 198},  # Magenta
-    1: {'code': 'O', 'r': 198, 'g': 0, 'b': 0},  # Red
-    2: {'code': 'J', 'r': 198, 'g': 198, 'b': 0},  # Yellow
-    3: {'code': 'L', 'r': 0, 'g': 198, 'b': 0},  # Green
-    4: {'code': 'S', 'r': 0, 'g': 198, 'b': 198},  # Cyan
-    5: {'code': 'T', 'r': 0, 'g': 0, 'b': 198},  # Blue
-    6: {'code': 'Z', 'r': 0, 'g': 0, 'b': 0},  # Black
-    7: {'code': 'W', 'r': 198, 'g': 198, 'b': 198}  # White
+    'I': (0.833, 1.0, 0.776),  # Magenta
+    'O': (0.0, 1.0, 0.776),  # Red
+    'J': (0.167, 1.0, 0.776),  # Yellow
+    'L': (0.333, 1.0, 0.776),  # Green
+    'S': (0.5, 1.0, 0.776),  # Cyan
+    'T': (0.667, 1.0, 0.776),  # Blue
+    'Z': (0.0, 0.0, 0.0),  # Black
+    'W': (0.0, 0.0, 0.776)  # White
 }
 
 
 def run():
-    write_blocks_to_file(load_image('res/brothers_photo.jpg'))
-
-
-def load_image(path):
-    image = Image.open(path)
+    image = Image.open(IMAGE_PATH)
     pixels = image.load()
-    x, y = image.size
+    width, height = image.size
 
-    all_colours = []
-    for i in range(x):
-        for j in range(y):
-            pixel_rgb = pixels[i, j]
-            all_colours.append({
-                'r': pixel_rgb[0],
-                'g': pixel_rgb[1],
-                'b': pixel_rgb[2]
-            })
+    all_colours = get_all_colours(pixels, width, height)
+
     arrange_colours(all_colours)
 
-    short_colour_spread = get_short_colour_spread(all_colours, len(COLOURS))
-    add_code_map_to_colour_spread(short_colour_spread)
-    if x <= y:
-        pixel_step = int(x / OUTPUT_DIMS)
-    else:
-        pixel_step = int(y / OUTPUT_DIMS)
+    short_colour_spread = get_short_colour_spread(all_colours)
 
+    pixel_ids = get_output_ids(pixels, short_colour_spread, width, height)
+
+    update_spread_count(short_colour_spread, pixel_ids)
+
+    add_code_map_to_colour_spread(short_colour_spread)
+
+    output_code_array = get_output_codes(pixel_ids, short_colour_spread)
+
+    if DISPLAY:
+        display_image(short_colour_spread, pixel_ids)
+
+    write_blocks_to_file(output_code_array)
+
+
+def get_all_colours(pixels, width, height):
+    all_colours = []
+    for i in range(width):
+        for j in range(height):
+            all_colours.append(get_hsv(pixels[i, j]))
+    return all_colours
+
+
+def display_image(colour_spread, pixel_ids):
     output_image = Image.new('RGB', (OUTPUT_DIMS, OUTPUT_DIMS), 'white')
     output_to_mod = output_image.load()
+    for i in range(OUTPUT_DIMS):
+        for j in range(OUTPUT_DIMS):
+            output_to_mod[j, i] = get_rgb(COLOURS[colour_spread[pixel_ids[i][j]]['code']])
+    output_image.show()
+
+
+def get_output_ids(pixels, short_colour_spread, width, height):
+    if width <= height:
+        pixel_step = int(width / OUTPUT_DIMS)
+    else:
+        pixel_step = int(height / OUTPUT_DIMS)
 
     output_pixels = []
     for i in range(OUTPUT_DIMS):
@@ -51,62 +71,53 @@ def load_image(path):
         pixel_row = []
         for j in range(OUTPUT_DIMS):
             sample_x = (j * pixel_step) + int(pixel_step / 2)
-            colour_code = get_colour_code(short_colour_spread, pixels[sample_x, sample_y])
-            pixel_row.append(colour_code)
-            output_to_mod[j, i] = get_rgb_from_code(short_colour_spread, colour_code)
+            pixel_row.append(get_closest_colour_id(short_colour_spread, get_hsv(pixels[sample_x, sample_y])))
         output_pixels.append(pixel_row)
 
     return output_pixels
 
 
+def get_output_codes(pixel_ids, short_colour_spread):
+    output_codes = []
+    for pixel_row in pixel_ids:
+        output_row = []
+        for pixel_id in pixel_row:
+            output_row.append(short_colour_spread[pixel_id]['code'])
+        output_codes.append(output_row)
+    return output_codes
+
+
+def update_spread_count(colour_spread, output_pixels):
+    for colour_id, spread_colour in colour_spread.items():
+        spread_colour['count'] = sum(1 for pixel_row in output_pixels
+                                     for pixel_id in pixel_row if pixel_id == colour_id)
+
+
 def calc_colour_distance(spread_hsv, pixel_hsv):
-    dh = min(abs(pixel_hsv[0] - spread_hsv[0]),
-             1 - abs(pixel_hsv[0] - spread_hsv[0]) / 0.5)
-
+    dh = min(abs(pixel_hsv[0] - spread_hsv[0]), 1 - abs(pixel_hsv[0] - spread_hsv[0]) / 0.5)
     ds = abs(pixel_hsv[1] - spread_hsv[1])
-
     dv = abs(pixel_hsv[2] - spread_hsv[2])
 
     return (2 * dh ** 2 + ds ** 2 + dv ** 2) ** 0.5
 
 
-def get_colour_id(colour_spread, pixel):
-    hsv = get_hsv(pixel)
+def get_closest_colour_id(colour_spread, pixel_hsv):
     return_id = 0
-    hue_min_distance = calc_colour_distance(get_hsv(colour_spread[0]), hsv)
+    hue_min_distance = calc_colour_distance(colour_spread[0]['hsv'], pixel_hsv)
     for colour_id, colour_dict in colour_spread.items():
-        hue_distance = calc_colour_distance(get_hsv(colour_dict), hsv)
+        hue_distance = calc_colour_distance(colour_dict['hsv'], pixel_hsv)
         if hue_distance < hue_min_distance:
             hue_min_distance = hue_distance
             return_id = colour_id
     return return_id
 
 
-def get_colour_code(colour_spread, pixel):
-    hsv = get_hsv_from_tuple(pixel)
-    code = colour_spread[0]['code']
-    hue_min_distance = calc_colour_distance(get_hsv(colour_spread[0]), hsv)
-    for colour_dict in colour_spread.values():
-        hue_distance = calc_colour_distance(get_hsv(colour_dict), hsv)
-        if hue_distance < hue_min_distance:
-            hue_min_distance = hue_distance
-            code = colour_dict['code']
-    return code
-
-
-def get_rgb_from_code(colour_spread, code):
-    for colour_dict in colour_spread.values():
-        if colour_dict['code'] == code:
-            return colour_dict['r'], colour_dict['g'], colour_dict['b']
-    return 0, 0, 0
-
-
 def add_code_map_to_colour_spread(colour_spread):
     colour_preference_list = []
     for colour_id, colour_dict in colour_spread.items():
-        for colour_code in COLOURS.values():
-            dist = calc_colour_distance(get_hsv(colour_code), get_hsv(colour_dict))  # * 1 / colour_dict['count']
-            colour_preference_list.append({'id': colour_id, 'code': colour_code['code'], 'dist': dist})
+        for colour_code, colour_hsv in COLOURS.items():
+            dist = calc_colour_distance(colour_hsv, colour_dict['hsv'])
+            colour_preference_list.append({'id': colour_id, 'code': colour_code, 'dist': dist})
 
     colour_preference_list.sort(key=lambda pref: pref['dist'])
 
@@ -117,39 +128,29 @@ def add_code_map_to_colour_spread(colour_spread):
                                   and item['code'] is not colour_choice['code']]
 
 
-def get_short_colour_spread(colours, colours_out_count):
-    arrange_colours(colours)
-    total_pixels = len(colours)
-    spread_separation = int(total_pixels / colours_out_count)
-    # short_colour_spread = []
+def get_short_colour_spread(colours):
+    spread_separation = int(len(colours) / len(COLOURS))
     short_colour_spread = {}
-    for i in range(colours_out_count):
+    for i in range(len(COLOURS)):
         sample_point = (i * spread_separation) + int(spread_separation / 2)
-        short_colour_spread[i] = colours[sample_point]
-        short_colour_spread[i]['count'] = 0
-
-    for pixel in colours:
-        short_colour_spread[get_colour_id(short_colour_spread, pixel)]['count'] += 1
+        short_colour_spread[i] = {'hsv': colours[sample_point], 'count': 0}
     return short_colour_spread
 
 
-def get_hsv_from_tuple(pixel_tuple):
+def get_hsv(pixel_tuple):
     return colorsys.rgb_to_hsv(
         pixel_tuple[0] / 255.0,
         pixel_tuple[1] / 255.0,
-        pixel_tuple[2] / 255.0
-    )
+        pixel_tuple[2] / 255.0)
 
 
-def get_hsv(colour_dict):
-    return get_hsv_from_tuple(
-        (colour_dict['r'],
-         colour_dict['g'],
-         colour_dict['b']))
+def get_rgb(hsv):
+    rgb = colorsys.hsv_to_rgb(hsv[0], hsv[1], hsv[2])
+    return int(255 * rgb[0]), int(255 * rgb[1]), int(255 * rgb[2])
 
 
 def arrange_colours(colours):
-    colours.sort(key=lambda colour: sum(get_hsv(colour)), reverse=True)
+    colours.sort(key=lambda colour: sum(colour), reverse=True)
 
 
 def write_blocks_to_file(output_pixels):
