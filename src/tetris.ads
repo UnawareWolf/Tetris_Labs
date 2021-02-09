@@ -68,26 +68,29 @@ is
    function First_Cell_Is_Open (Board : in Board_Array;
                                  X : in X_Coord) return Boolean
    is (not Board (Y_Coord'First)(X).Locked);
-       --  for some Row of Board => not Row (X).Locked);
 
-   --function None_Open_After_Locked_Cell (Board : in Board_Array;
-   --                                      X : in X_Coord) return Boolean
-   --is (for all J in Board);
+   function None_Open_After_Locked_Cell (Board : in Board_Array;
+                                         X : in X_Coord) return Boolean;
 
+   function Lower_Squares_Are_Locked (Board : in Board_Array;
+                                      Coord : in Coord_2D) return Boolean
+   is (if Coord.Y_Pos < Y_Coord'Last then
+         (for all J in Coord.Y_Pos + 1 .. Y_Coord'Last =>
+             Board (J)(Coord.X_Pos).Locked));
+     --  (None_Open_After_Locked_Cell (Board, Coord.X_Pos) and
+     --    (if Coord.Y_Pos < Y_Coord'Last then
+     --      (Board (Coord.Y_Pos + 1)(Coord.X_Pos).Locked)));
+     --
    function Is_Coord_Locked(Board : in Board_Array;
                             Coord : in Coord_2D) return Boolean
    is (Board (Coord.Y_Pos)(Coord.X_Pos).Locked) with Ghost;
 
    function Get_Next_Coord (Board : Board_Array;
                             Next_X : X_Coord) return Coord_2D
-     with Pre => (First_Cell_Is_Open (Board, Next_X)),
-                  --and
-                  --  None_Open_After_Locked_Cell),
-     Post => (not Is_Coord_Locked (Board, Get_Next_Coord'Result)),
-       --and
-       --  (if Get_Next_Coord'Result.Y_Pos < Y_Coord'Last then
-       --     (for all J in Get_Next_Coord'Result.Y_Pos + 1
-       --      .. Y_Coord'Last => Board (J)(Next_X).Locked)),
+     with Pre => (First_Cell_Is_Open (Board, Next_X))
+     and (None_Open_After_Locked_Cell (Board, Next_X)),
+     Post => (not Is_Coord_Locked (Board, Get_Next_Coord'Result))
+     and (Lower_Squares_Are_Locked (Board, Get_Next_Coord'Result)),
      Global => (null),
      Depends => (Get_Next_Coord'Result => (Next_X, Board));
 
@@ -97,7 +100,8 @@ is
    procedure Create_And_Add_Piece (Board : in out Board_Array;
                                    Picture_Map : in Picture_Codes;
                                    Next_X : in X_Coord)
-     with Pre => (First_Cell_Is_Open (Board, Next_X)),
+     with Pre => (First_Cell_Is_Open (Board, Next_X))
+     and (None_Open_After_Locked_Cell (Board, Next_X)),
      Global => (null),
      Depends => (Board =>+ (Next_X, Picture_Map));
 
