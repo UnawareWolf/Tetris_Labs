@@ -20,22 +20,6 @@ is
                                            Locked => False);
    end Remove_Piece_From_Board;
 
-   function None_Open_After_Locked_Cell (Board : in Board_Array;
-                                         X : in X_Coord) return Boolean is
-      Locked_Cell_Found : Boolean := False;
-   begin
-      for Row of Board loop
-         if Locked_Cell_Found then
-            if not Row (X).Locked then
-               return False;
-            end if;
-         elsif Row (X).Locked then
-            Locked_Cell_Found := True;
-         end if;
-      end loop;
-      return True;
-   end None_Open_After_Locked_Cell;
-
    function Get_Next_Coord (Board : in Board_Array;
                             Next_X : in X_Coord) return Coord_2D is
       Next_Coord : Coord_2D;

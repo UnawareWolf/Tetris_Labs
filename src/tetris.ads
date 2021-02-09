@@ -69,18 +69,24 @@ is
                                  X : in X_Coord) return Boolean
    is (not Board (Y_Coord'First)(X).Locked);
 
+   function Locked_Cell_In_Column (Board : in Board_Array;
+                                   X : in X_Coord) return Boolean
+   is (for some Row of Board => (Row (X).Locked));
+
    function None_Open_After_Locked_Cell (Board : in Board_Array;
-                                         X : in X_Coord) return Boolean;
+                                         X : in X_Coord) return Boolean
+   is (if Locked_Cell_In_Column (Board, X) then
+         (for all J in Board'Range =>
+            (if Board (J)(X).Locked then
+                 (for all K in J .. Y_Coord'Last =>
+                  (Board (K)(X).Locked)))));
 
    function Lower_Squares_Are_Locked (Board : in Board_Array;
                                       Coord : in Coord_2D) return Boolean
    is (if Coord.Y_Pos < Y_Coord'Last then
          (for all J in Coord.Y_Pos + 1 .. Y_Coord'Last =>
              Board (J)(Coord.X_Pos).Locked));
-     --  (None_Open_After_Locked_Cell (Board, Coord.X_Pos) and
-     --    (if Coord.Y_Pos < Y_Coord'Last then
-     --      (Board (Coord.Y_Pos + 1)(Coord.X_Pos).Locked)));
-     --
+
    function Is_Coord_Locked(Board : in Board_Array;
                             Coord : in Coord_2D) return Boolean
    is (Board (Coord.Y_Pos)(Coord.X_Pos).Locked) with Ghost;
