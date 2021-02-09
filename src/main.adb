@@ -9,48 +9,30 @@ procedure Main is
 
    The_Board : Board_Array;
 
-   procedure Update_Graphics (Board : in out Board_Array) is
+   procedure Run_Tetris (Picture_Map : in Picture_Codes;
+                         Board : out Board_Array) is
+      Next_X : X_Coord := X_Coord'Last;
+      Next_Piece : Falling_Piece;
    begin
-      for Row of Board loop
-         for Cell of Row loop
-            if Cell.Content_Type /= Empty then
-               Set_Y (Shape => Cell.Piece.Shape,
-                      Value => Translate_Y (Cell.Piece.Y_Pos));
-            end if;
-         end loop;
+      Board := (others => <>);
+      for I in 0 .. 4094 loop
+         delay 0.001;
+         Next_X := Next_X + 1;
+         if First_Cell_Is_Open (Board, Next_X) then
+            Create_And_Add_Piece (Board, Picture_Map, Next_X);
+         end if;
+         Update_Board (Board);
+         Update_Graphics (Board);
       end loop;
-   end Update_Graphics;
-
-   procedure Print_Board (Board : in Board_Array) is
-   begin
-      for Row of Board loop
-         for Cell of Row loop
-            if Cell.Content_Type = Empty then
-               Put ("-");
-            else
-               Put (Cell.Content_Type'Image);
-            end if;
-            Put (" ");
-         end loop;
-         New_Line;
-      end loop;
-      New_Line;
-   end Print_Board;
+   end Run_Tetris;
 
    Picture_Map : Picture_Codes;
    Next_X : X_Coord := X_Coord'Last;
    Next_Piece : Falling_Piece;
 begin
    Picture_Map := Get_Picture_Codes;
-   for I in 0 .. 4094 loop
-      delay 0.001;
-      Next_X := Next_X + 1;
-      if First_Cell_Is_Open (The_Board, Next_X) then
-         Create_And_Add_Piece (The_Board, Picture_Map, Next_X);
-      end if;
-      Update_Board (The_Board);
-      Update_Graphics (The_Board);
-   end loop;
+   Run_Tetris (Picture_Map => Picture_Map,
+               Board       => The_Board);
 
    New_Line;
    Put_Line ("   GAME OVER");

@@ -60,10 +60,12 @@ is
                  Cell =>+ null);
 
    procedure Include_Piece_In_Board (Board : in out Board_Array;
-                                     Piece : in Falling_Piece);
+                                     Piece : in Falling_Piece)
+     with Post => (Board (Piece.Y_Pos)(Piece.X_Pos).Piece = Piece);
 
    procedure Remove_Piece_From_Board (Board : in out Board_Array;
-                                      Piece : in Falling_Piece);
+                                      Piece : in Falling_Piece)
+     with Post => (Board (Piece.Y_Pos)(Piece.X_Pos).Content_Type = Empty);
 
    function First_Cell_Is_Open (Board : in Board_Array;
                                  X : in X_Coord) return Boolean
@@ -71,7 +73,7 @@ is
 
    function Locked_Cell_In_Column (Board : in Board_Array;
                                    X : in X_Coord) return Boolean
-   is (for some Row of Board => (Row (X).Locked));
+   is (for some Row of Board => (Row (X).Locked)) with Ghost;
 
    function None_Open_After_Locked_Cell (Board : in Board_Array;
                                          X : in X_Coord) return Boolean
@@ -79,13 +81,13 @@ is
          (for all J in Board'Range =>
             (if Board (J)(X).Locked then
                  (for all K in J .. Y_Coord'Last =>
-                  (Board (K)(X).Locked)))));
+                  (Board (K)(X).Locked))))) with Ghost;
 
    function Lower_Squares_Are_Locked (Board : in Board_Array;
                                       Coord : in Coord_2D) return Boolean
    is (if Coord.Y_Pos < Y_Coord'Last then
          (for all J in Coord.Y_Pos + 1 .. Y_Coord'Last =>
-             Board (J)(Coord.X_Pos).Locked));
+             Board (J)(Coord.X_Pos).Locked)) with Ghost;
 
    function Is_Coord_Locked(Board : in Board_Array;
                             Coord : in Coord_2D) return Boolean
@@ -101,7 +103,9 @@ is
      Depends => (Get_Next_Coord'Result => (Next_X, Board));
 
    procedure Lock_Coord (Board : in out Board_Array;
-                         Coord : Coord_2D);
+                         Coord : Coord_2D)
+     with Pre => (not Board (Coord.Y_Pos)(Coord.X_Pos).Locked),
+     Post => (Board (Coord.Y_Pos)(Coord.X_Pos).Locked);
 
    procedure Create_And_Add_Piece (Board : in out Board_Array;
                                    Picture_Map : in Picture_Codes;
@@ -112,6 +116,10 @@ is
      Depends => (Board =>+ (Next_X, Picture_Map));
 
    procedure Update_Board (Board : in out Board_Array);
+
+   procedure Update_Graphics (Board : in out Board_Array);
+
+   procedure Print_Board (Board : in Board_Array);
 
 private
 

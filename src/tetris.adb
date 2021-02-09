@@ -1,3 +1,5 @@
+with Ada.Text_IO; use Ada.Text_IO;
+
 package body Tetris
 with SPARK_Mode => On
 is
@@ -31,11 +33,7 @@ is
          Y_Pos := J;
          exit when J = Y_Coord'Last or else Board (J + 1)(Next_X).Locked;
       end loop;
-      pragma Assert (None_Open_After_Locked_Cell (Board, Next_X));
-      pragma Assert (if Y_Pos < Y_Coord'Last then
-                       (Board (Y_Pos + 1)(Next_X).Locked));
       Next_Coord := (X_Pos => Next_X, Y_Pos => Y_Pos);
-      pragma Assert (Lower_Squares_Are_Locked (Board, Next_Coord));
       return Next_Coord;
    end Get_Next_Coord;
 
@@ -91,5 +89,33 @@ is
          end loop;
       end loop;
    end Update_Board;
+
+   procedure Update_Graphics (Board : in out Board_Array) is
+   begin
+      for Row of Board loop
+         for Cell of Row loop
+            if Cell.Content_Type /= Empty then
+               Set_Y (Shape => Cell.Piece.Shape,
+                      Value => Translate_Y (Cell.Piece.Y_Pos));
+            end if;
+         end loop;
+      end loop;
+   end Update_Graphics;
+
+   procedure Print_Board (Board : in Board_Array) is
+   begin
+      for Row of Board loop
+         for Cell of Row loop
+            if Cell.Content_Type = Empty then
+               Put ("-");
+            else
+               Put (Cell.Content_Type'Image);
+            end if;
+            Put (" ");
+         end loop;
+         New_Line;
+      end loop;
+      New_Line;
+   end Print_Board;
 
 end Tetris;
