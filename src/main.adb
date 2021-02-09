@@ -9,20 +9,6 @@ procedure Main is
 
    The_Board : Board_Array;
 
-   procedure Update_Board (Board : in out Board_Array) is
-      Board_Copy : Board_Array := Board;
-   begin
-      for Row of Board_Copy loop
-         for Cell of Row loop
-            if Can_Move_Down (Board_Copy, Cell) then
-               Remove_Piece_From_Board (The_Board, Cell.Piece);
-               Cell.Piece.Y_Pos := Cell.Piece.Y_Pos + 1;
-               Include_Piece_In_Board (The_Board, Cell.Piece);
-            end if;
-         end loop;
-      end loop;
-   end Update_Board;
-
    procedure Update_Graphics (Board : in out Board_Array) is
    begin
       for Row of Board loop
@@ -53,12 +39,15 @@ procedure Main is
 
    Picture_Map : Picture_Codes;
    Next_X : X_Coord := X_Coord'Last;
+   Next_Piece : Falling_Piece;
 begin
    Picture_Map := Get_Picture_Codes;
    for I in 0 .. 4094 loop
       delay 0.001;
       Next_X := Next_X + 1;
-      Create_And_Add_Piece (The_Board, Picture_Map, Next_X);
+      if First_Cell_Is_Open (The_Board, Next_X) then
+         Create_And_Add_Piece (The_Board, Picture_Map, Next_X);
+      end if;
       Update_Board (The_Board);
       Update_Graphics (The_Board);
    end loop;
