@@ -70,6 +70,10 @@ is
    is (not Board (Y_Coord'First)(X).Locked);
        --  for some Row of Board => not Row (X).Locked);
 
+   --function None_Open_After_Locked_Cell (Board : in Board_Array;
+   --                                      X : in X_Coord) return Boolean
+   --is (for all J in Board);
+
    function Is_Coord_Locked(Board : in Board_Array;
                             Coord : in Coord_2D) return Boolean
    is (Board (Coord.Y_Pos)(Coord.X_Pos).Locked) with Ghost;
@@ -77,12 +81,13 @@ is
    function Get_Next_Coord (Board : Board_Array;
                             Next_X : X_Coord) return Coord_2D
      with Pre => (First_Cell_Is_Open (Board, Next_X)),
-     Post =>
-       (not Is_Coord_Locked (Board, Get_Next_Coord'Result)),
-     --  and
-     --  (if Get_Next_Coord'Result.Y_Pos < Y_Coord'Last then
-     --  (for all J in Get_Next_Coord'Result.Y_Pos + 1
-     --      .. Y_Coord'Last => Board (J)(Next_X).Locked),
+                  --and
+                  --  None_Open_After_Locked_Cell),
+     Post => (not Is_Coord_Locked (Board, Get_Next_Coord'Result)),
+       --and
+       --  (if Get_Next_Coord'Result.Y_Pos < Y_Coord'Last then
+       --     (for all J in Get_Next_Coord'Result.Y_Pos + 1
+       --      .. Y_Coord'Last => Board (J)(Next_X).Locked)),
      Global => (null),
      Depends => (Get_Next_Coord'Result => (Next_X, Board));
 

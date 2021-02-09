@@ -23,12 +23,22 @@ is
    function Get_Next_Coord (Board : in Board_Array;
                             Next_X : in X_Coord) return Coord_2D is
       Next_Coord : Coord_2D;
-      Y_Pos : Y_Coord := Y_Coord'First;
+      Y_Pos : Y_Coord;-- := Y_Coord'First;
    begin
-      for Row of Board loop
-         exit when Y_Pos = Y_Coord'Last or Row (Next_X).Locked;
-         Y_Pos := Y_Pos + 1;
+      --pragma Assert (not Board (Y_Pos)(Next_X).Locked);
+      for J in Y_Coord loop
+
+         pragma Loop_Invariant (for all K in Y_Coord'First .. J =>
+                                   (not Board (K)(Next_X).Locked));
+         Y_Pos := J;
+         exit when J = Y_Coord'Last or else Board (J + 1)(Next_X).Locked;
+
+         --pragma Assert (not Board (J + 1)(Next_X).Locked);
+
+         --pragma Assert (not Board (Y_Pos)(Next_X).Locked);
       end loop;
+
+      --pragma Assert (not Board (Y_Pos)(Next_X).Locked);
       Next_Coord := (X_Pos => Next_X, Y_Pos => Y_Pos);
       return Next_Coord;
    end Get_Next_Coord;
